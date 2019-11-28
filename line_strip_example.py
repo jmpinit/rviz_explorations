@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
+import math
+import rospy
 from geometry_msgs.msg import Quaternion, Pose, Point, Vector3
 from std_msgs.msg import Header, ColorRGBA
 from visualization_msgs.msg import Marker
-import rospy
 
 class UID32(object):
     def __init__(self):
@@ -51,6 +52,36 @@ def line_strip_from_xyz(points, color=(1.0, 1.0, 1.0)):
 
     return lineStripMsg
 
+class Turtle(object):
+    def __init__(self):
+        self.angle = 0
+        self.x = 0
+        self.y = 0
+        self.points = [(self.x, self.y)]
+
+    def forward(self, distance):
+        self.x += distance * math.cos(self.angle)
+        self.y += distance * math.sin(self.angle)
+        self.points.append((self.x, self.y))
+
+    def turn(self, angle):
+        self.angle += angle
+
+def dragon_curve_construct(turtle, order, length, sign):
+  if order == 0:
+    turtle.forward(length)
+  else:
+    rootHalf = (1.0 / 2.0) ** (1.0 / 2.0)
+    dragon_curve_construct(turtle, order - 1, length * rootHalf, 1)
+    turtle.turn(sign * -math.pi / 2.0)
+    dragon_curve_construct(turtle, order - 1, length * rootHalf, -1)
+
+def dragon_curve(order, length):
+    turtle = Turtle()
+    turtle.turn(order * math.pi / 4.0)
+    dragon_curve_construct(turtle, order, length, 1)
+    return turtle.points
+
 def main():
     rospy.init_node('path_viz')
     wait_for_time()
@@ -62,17 +93,10 @@ def main():
     markerPublisher = rospy.Publisher('visualization_marker', Marker, queue_size=10)
     rospy.sleep(0.5) # Have to wait for others to properly subscribe to us
 
-    points = []
-    for i in range(0, 100):
-        x = i * 0.1
-        y = i * 0.1
-        z = i * 0.1
-        points.append((x, y, z))
+    points = [(x, y, 0) for (x, y) in dragon_curve(8, 4)]
 
     lineStripMsg = line_strip_from_xyz(points)
     markerPublisher.publish(lineStripMsg)
-
-    print('Created a line')
 
     rospy.spin()
 
