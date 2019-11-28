@@ -5,15 +5,7 @@ import rospy
 from geometry_msgs.msg import Quaternion, Pose, Point, Vector3
 from std_msgs.msg import Header, ColorRGBA
 from visualization_msgs.msg import Marker
-
-class UID32(object):
-    def __init__(self):
-        self.id = 0
-
-    def next(self):
-        id = self.id
-        self.id += 1
-        return id
+from uid import UID32
 
 uid32 = UID32()
 
@@ -29,6 +21,7 @@ def wait_for_time():
         pass
 
 def make_shape(typeName, x, y, z):
+    ns = 'shape'
     scale = 1
     pose = Pose(Point(x, y, z), Quaternion(0, 0, 0, 1))
 
@@ -45,8 +38,8 @@ def make_shape(typeName, x, y, z):
 
     return Marker(
         type=types[typeName],
-        ns='shape',
-        id=uid32.next(),
+        ns=ns,
+        id=uid32.next(ns),
         scale=Vector3(scale, scale, scale),
         pose=pose,
         header=Header(frame_id='map'),

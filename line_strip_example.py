@@ -5,15 +5,7 @@ import rospy
 from geometry_msgs.msg import Quaternion, Pose, Point, Vector3
 from std_msgs.msg import Header, ColorRGBA
 from visualization_msgs.msg import Marker
-
-class UID32(object):
-    def __init__(self):
-        self.id = 0
-
-    def next(self):
-        id = self.id
-        self.id += 1
-        return id
+from uid import UID32
 
 uid32 = UID32()
 
@@ -36,14 +28,15 @@ def line_strip_from_xyz(points, color=(1.0, 1.0, 1.0)):
     # ns (namespace) is combined with id to make a unique identifier
     # so id must be unique. It's a 32 bit integer.
 
+    ns = 'path'
     scale = 0.05 # How thick this line will be drawn
     pose = Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1))
     r, g, b = color
 
     lineStripMsg = Marker(
         type=Marker.LINE_STRIP,
-        ns='path',
-        id=uid32.next(),
+        ns=ns,
+        id=uid32.next(ns),
         points=path,
         scale=Vector3(scale, 0.0, 0.0),
         pose=pose,
